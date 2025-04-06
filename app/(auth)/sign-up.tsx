@@ -29,6 +29,7 @@ const SignUp = () => {
     // Start sign-up process using email and password provided
     try {
       await signUp.create({
+        firstName: form.name,
         emailAddress: form.email,
         password: form.password,
       });
@@ -38,7 +39,10 @@ const SignUp = () => {
 
       setVerification({ ...verification, state: "pending" });
     } catch (err) {
-      Alert.alert("Error", err.errors[0].longMessage);
+      Alert.alert(
+        "Error",
+        (err as any)?.errors?.[0]?.longMessage || "An unknown error occurred"
+      );
     }
   };
 
@@ -68,7 +72,8 @@ const SignUp = () => {
       setVerification({
         ...verification,
         state: "failed",
-        error: err.errors[0].longMessage,
+        error:
+          (err as any)?.errors?.[0]?.longMessage || "An unknown error occurred",
       });
       console.error(JSON.stringify(err, null, 2));
     }
@@ -181,7 +186,8 @@ const SignUp = () => {
               title="Browse Home"
               className="mt-5"
               onPress={() => {
-                router.replace("/(root)/(tabs)/home");
+                setShowSuccessModal(false);
+                router.push("/(root)/(tabs)/home");
               }}
             />
           </View>

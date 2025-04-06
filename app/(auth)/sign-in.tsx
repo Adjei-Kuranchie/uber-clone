@@ -5,7 +5,7 @@ import { icons, images } from "@/constants";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
-import { Image, ScrollView, Text, View } from "react-native";
+import { Alert, Image, ScrollView, Text, View } from "react-native";
 
 const SignIn = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -23,20 +23,17 @@ const SignIn = () => {
         password: form.password,
       });
 
-      // If sign-in process is complete, set the created session as active
-      // and redirect the user
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace("/");
+        router.replace("/(root)/(tabs)/home");
       } else {
-        // If the status isn't complete, check why. User might need to
-        // complete further steps.
         console.error(JSON.stringify(signInAttempt, null, 2));
       }
     } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      console.error(JSON.stringify(err, null, 2));
+      Alert.alert(
+        "Error",
+        (err as any)?.errors?.[0]?.longMessage || "An unknown error occurred"
+      );
     }
   };
 

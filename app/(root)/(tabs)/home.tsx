@@ -1,7 +1,17 @@
+import GoogleTextInput from "@/components/GoogleTextInput";
+import Map from "@/components/Map";
 import RideCard from "@/components/RideCard";
-import { images } from "@/constants";
-import { useUser } from "@clerk/clerk-expo";
-import { ActivityIndicator, FlatList, Image, Text, View } from "react-native";
+import { icons, images } from "@/constants";
+import { useClerk, useUser } from "@clerk/clerk-expo";
+import * as Linking from "expo-linking";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const recentRides = [
@@ -112,8 +122,21 @@ const recentRides = [
 ];
 
 export default function Page() {
+  const { signOut } = useClerk();
   const { user } = useUser();
   const loading = true;
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+
+      Linking.openURL(Linking.createURL("/"));
+    } catch (err) {
+      console.error(JSON.stringify(err, null, 2));
+    }
+  };
+
+  const handleDestinationPress = () => {};
 
   return (
     <SafeAreaView className="bg-general-500">
@@ -127,7 +150,13 @@ export default function Page() {
           paddingTop: 20,
         }}
         ListEmptyComponent={() => <Empty loading={loading} />}
-        ListHeaderComponent={() => <Header firstName={user?.firstName!} />}
+        ListHeaderComponent={() => (
+          <Header
+            firstName={user?.firstName!}
+            onPress={handleSignOut}
+            onSearchPress={handleDestinationPress}
+          />
+        )}
       />
     </SafeAreaView>
   );
@@ -151,10 +180,36 @@ const Empty = ({ loading }: { loading: boolean }) => (
   </View>
 );
 
-const Header = ({ firstName }: { firstName: string }) => (
-  <View className="flex flex-row items-center justify-between my-2">
-    <Text className="text-2xl font-JakartaExtraBold">
-      Welcome {firstName} 👋
-    </Text>
-  </View>
+const Header = ({ firstName, onPress, onSearchPress }) => (
+  <>
+    <View className="flex flex-row items-center justify-between my-2">
+      <Text className="text-2xl font-JakartaExtraBold capitalize">
+        Welcome {firstName} 👋
+      </Text>
+      <TouchableOpacity
+        onPress={onPress}
+        className="justify-center items-center h-10 w-10 rounded-full bg-white"
+      >
+        <Image source={icons.out} className="w-8 h-8" />
+      </TouchableOpacity>
+    </View>
+
+    {/* Google Text Input */}
+    <GoogleTextInput
+      icon={icons.search}
+      containerStyle={`bg-white bg-neutral-300`}
+      handlePress={onSearchPress}
+    />
+
+    <>
+      <Text className="text-xl font-JakartaBold mt-5 mb-3 ">
+        Your Current Location
+      </Text>
+      <View className="fle flex-row items-center bg-transparent h-[300px]">
+        <Map />
+      </View>
+    </>
+
+    <Text>Recent Rides</Text>
+  </>
 );
